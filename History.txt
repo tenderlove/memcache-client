@@ -1,3 +1,8 @@
+= 1.7.0
+
+* Add fetch method which provides a method very similar to ActiveSupport::Cache::Store#fetch,
+  basically a wrapper around get and add. (djanowski)
+
 = 1.6.5 (2009-02-27)
 
 * Change memcache-client to multithreaded by default.  The mutex does not add significant
