@@ -223,11 +223,9 @@ class MemCache
   end
 
   ##
-  # Performs a +get+ with the given +key+.
-  #
-  # If a block is given, it will be yielded
-  # and its return value will be used to
-  # set the value by calling +add+.
+  # Performs a +get+ with the given +key+.  If 
+  # the value does not exist and a block was given,
+  # the block will be called and the result saved via +add+.
   #
   # If you do not provide a block, using this
   # method is the same as using +get+.

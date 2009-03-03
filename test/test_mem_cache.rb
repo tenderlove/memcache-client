@@ -488,6 +488,7 @@ class TestMemCache < Test::Unit::TestCase
     flexmock(@cache).should_receive(:get).with('key', false).and_return(nil)
 
     value = @cache.fetch('key', 1)
+    assert_equal nil, value
   end
   
   def test_fetch_miss
