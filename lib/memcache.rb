@@ -45,6 +45,7 @@ class MemCache
     :failover    => true,
     :timeout     => 0.5,
     :logger      => nil,
+    :no_reply    => false,
   }
 
   ##
@@ -90,6 +91,12 @@ class MemCache
   attr_reader :logger
 
   ##
+  # Don't send or look for a reply from the memcached server for write operations.
+  # Please note this feature only works in memcached 1.2.5 and later.  Earlier
+  # versions will reply with "ERROR".
+  attr_reader :no_reply
+
+  ##
   # Accepts a list of +servers+ and a list of +opts+.  +servers+ may be
   # omitted.  See +servers=+ for acceptable server list arguments.
   #
@@ -104,6 +111,9 @@ class MemCache
   #                  set to nil to disable timeouts (this is a major performance penalty in Ruby 1.8,
   #                  "gem install SystemTimer' to remove most of the penalty).
   #   [:logger]      Logger to use for info/debug output, defaults to nil
+  #   [:no_reply]    Don't bother looking for a reply for write operations (i.e. they
+  #                  become 'fire and forget'), memcached 1.2.5 and later only, speeds up
+  #                  set/add/delete/incr/decr significantly.
   #
   # Other options are ignored.
 
@@ -134,6 +144,7 @@ class MemCache
     @timeout     = opts[:timeout]
     @failover    = opts[:failover]
     @logger      = opts[:logger]
+    @no_reply    = opts[:no_reply]
     @mutex       = Mutex.new if @multithread
 
     logger.info { "memcache-client #{VERSION} #{Array(servers).inspect}" } if logger
@@ -327,10 +338,11 @@ class MemCache
       data = value.to_s
       raise MemCacheError, "Value too large, memcached can only store 1MB of data per key" if data.size > ONE_MB
 
-      command = "set #{cache_key} 0 #{expiry} #{data.size}\r\n#{data}\r\n"
+      command = "set #{cache_key} 0 #{expiry} #{data.size}#{noreply}\r\n#{data}\r\n"
 
       with_socket_management(server) do |socket|
         socket.write command
+        break nil if @no_reply
         result = socket.gets
         raise_on_error_response! result
 
@@ -357,10 +369,11 @@ class MemCache
     with_server(key) do |server, cache_key|
       value = Marshal.dump value unless raw
       logger.debug { "ADD #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
-      command = "add #{cache_key} 0 #{expiry} #{value.to_s.size}\r\n#{value}\r\n"
+      command = "add #{cache_key} 0 #{expiry} #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
 
       with_socket_management(server) do |socket|
         socket.write command
+        break nil if @no_reply
         result = socket.gets
         raise_on_error_response! result
         result
@@ -375,7 +388,8 @@ class MemCache
     raise MemCacheError, "Update of readonly cache" if @readonly
     with_server(key) do |server, cache_key|
       with_socket_management(server) do |socket|
-        socket.write "delete #{cache_key} #{expiry}\r\n"
+        socket.write "delete #{cache_key} #{expiry}#{noreply}\r\n"
+        break nil if @no_reply
         result = socket.gets
         raise_on_error_response! result
         result
@@ -400,7 +414,8 @@ class MemCache
       delay_time = 0
       @servers.each do |server|
         with_socket_management(server) do |socket|
-          socket.write "flush_all #{delay_time}\r\n"
+          socket.write "flush_all #{delay_time}#{noreply}\r\n"
+          break nil if @no_reply
           result = socket.gets
           raise_on_error_response! result
           result
@@ -557,7 +572,8 @@ class MemCache
 
   def cache_decr(server, cache_key, amount)
     with_socket_management(server) do |socket|
-      socket.write "decr #{cache_key} #{amount}\r\n"
+      socket.write "decr #{cache_key} #{amount}#{noreply}\r\n"
+      break nil if @no_reply
       text = socket.gets
       raise_on_error_response! text
       return nil if text == "NOT_FOUND\r\n"
@@ -626,7 +642,8 @@ class MemCache
 
   def cache_incr(server, cache_key, amount)
     with_socket_management(server) do |socket|
-      socket.write "incr #{cache_key} #{amount}\r\n"
+      socket.write "incr #{cache_key} #{amount}#{noreply}\r\n"
+      break nil if @no_reply
       text = socket.gets
       raise_on_error_response! text
       return nil if text == "NOT_FOUND\r\n"
@@ -704,6 +721,10 @@ class MemCache
     new_error = MemCacheError.new error.message
     new_error.set_backtrace error.backtrace
     raise new_error
+  end
+
+  def noreply
+    @no_reply ? ' noreply' : ''
   end
 
   ##
