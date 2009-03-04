@@ -3,6 +3,11 @@
 * Add fetch method which provides a method very similar to ActiveSupport::Cache::Store#fetch,
   basically a wrapper around get and add. (djanowski)
 
+* Implement the flush_all delay parameter, to allow a large memcached farm to be flushed gradually.
+
+* Implement the noreply flag, which tells memcached not to reply in operations which don't
+  need a reply, i.e. set/add/delete/flush_all.
+
 = 1.6.5 (2009-02-27)
 
 * Change memcache-client to multithreaded by default.  The mutex does not add significant
