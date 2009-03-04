@@ -795,6 +795,49 @@ class TestMemCache < Test::Unit::TestCase
     assert_match /object too large for cache/, e.message
   end
 
+  def test_prepend
+    server = FakeServer.new
+    server.socket.data.write "STORED\r\n"
+    server.socket.data.rewind
+    @cache.servers = []
+    @cache.servers << server
+
+    @cache.prepend 'key', 'value'
+    
+    dumped = Marshal.dump('value')
+
+    expected = "prepend my_namespace:key 0 0 5\r\nvalue\r\n"
+    assert_equal expected, server.socket.written.string
+  end
+
+  def test_append
+    server = FakeServer.new
+    server.socket.data.write "STORED\r\n"
+    server.socket.data.rewind
+    @cache.servers = []
+    @cache.servers << server
+
+    @cache.append 'key', 'value'
+    
+    expected = "append my_namespace:key 0 0 5\r\nvalue\r\n"
+    assert_equal expected, server.socket.written.string
+  end
+
+  def test_replace
+    server = FakeServer.new
+    server.socket.data.write "STORED\r\n"
+    server.socket.data.rewind
+    @cache.servers = []
+    @cache.servers << server
+
+    @cache.replace 'key', 'value', 150
+    
+    dumped = Marshal.dump('value')
+
+    expected = "replace my_namespace:key 0 150 #{dumped.length}\r\n#{dumped}\r\n"
+    assert_equal expected, server.socket.written.string
+  end
+
   def test_add
     server = FakeServer.new
     server.socket.data.write "STORED\r\n"
@@ -1046,6 +1089,10 @@ class TestMemCache < Test::Unit::TestCase
             cache.set('a', 9)
             cache.set('b', 11)
             cache.add('c', 10, 0, true)
+            cache.set('d', 'a', 100, true)
+            cache.set('e', 'x', 100, true)
+            cache.append('d', 'b')
+            cache.prepend('e', 'y')
             assert_equal "NOT_STORED\r\n", cache.add('a', 11)
             assert_equal({ 'a' => 9, 'b' => 11 }, cache.get_multi(['a', 'b']))
             inc = cache.incr('c', 10)
@@ -1053,6 +1100,10 @@ class TestMemCache < Test::Unit::TestCase
             assert inc > 14
             assert cache.decr('c', 5) > 14
             assert_equal 11, cache.get('b')
+            d = cache.get('d', true)
+            assert_match /\Aab+\Z/, d
+            e = cache.get('e', true)
+            assert_match /\Ay+x\Z/, e
           end
         end
       end

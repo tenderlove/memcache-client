@@ -362,7 +362,7 @@ class MemCache
   # If +raw+ is true, +value+ will not be Marshalled.
   #
   # Readers should call this method in the event of a cache miss, not
-  # MemCache#set or MemCache#[]=.
+  # MemCache#set.
 
   def add(key, value, expiry = 0, raw = false)
     raise MemCacheError, "Update of readonly cache" if @readonly
@@ -370,6 +370,67 @@ class MemCache
       value = Marshal.dump value unless raw
       logger.debug { "ADD #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
       command = "add #{cache_key} 0 #{expiry} #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
+
+      with_socket_management(server) do |socket|
+        socket.write command
+        break nil if @no_reply
+        result = socket.gets
+        raise_on_error_response! result
+        result
+      end
+    end
+  end
+  
+  ##
+  # Add +key+ to the cache with value +value+ that expires in +expiry+
+  # seconds, but only if +key+ already exists in the cache.
+  # If +raw+ is true, +value+ will not be Marshalled.
+  def replace(key, value, expiry = 0, raw = false)
+    raise MemCacheError, "Update of readonly cache" if @readonly
+    with_server(key) do |server, cache_key|
+      value = Marshal.dump value unless raw
+      logger.debug { "REPLACE #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
+      command = "replace #{cache_key} 0 #{expiry} #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
+
+      with_socket_management(server) do |socket|
+        socket.write command
+        break nil if @no_reply
+        result = socket.gets
+        raise_on_error_response! result
+        result
+      end
+    end
+  end
+
+  ##
+  # Append - 'add this data to an existing key after existing data'
+  # Please note the value is always passed to memcached as raw since it
+  # doesn't make a lot of sense to concatenate marshalled data together.
+  def append(key, value)
+    raise MemCacheError, "Update of readonly cache" if @readonly
+    with_server(key) do |server, cache_key|
+      logger.debug { "APPEND #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
+      command = "append #{cache_key} 0 0 #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
+
+      with_socket_management(server) do |socket|
+        socket.write command
+        break nil if @no_reply
+        result = socket.gets
+        raise_on_error_response! result
+        result
+      end
+    end
+  end
+
+  ##
+  # Prepend - 'add this data to an existing key before existing data'
+  # Please note the value is always passed to memcached as raw since it
+  # doesn't make a lot of sense to concatenate marshalled data together.
+  def prepend(key, value)
+    raise MemCacheError, "Update of readonly cache" if @readonly
+    with_server(key) do |server, cache_key|
+      logger.debug { "PREPEND #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
+      command = "prepend #{cache_key} 0 0 #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
 
       with_socket_management(server) do |socket|
         socket.write command
