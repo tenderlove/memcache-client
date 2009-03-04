@@ -223,8 +223,8 @@ class MemCache
 
   def get(key, raw = false)
     with_server(key) do |server, cache_key|
+      logger.debug { "get #{key} from #{server.inspect}: #{value ? value.to_s.size : 'nil'}" } if logger
       value = cache_get server, cache_key
-      logger.debug { "GET #{key} from #{server.inspect}: #{value ? value.to_s.size : 'nil'}" } if logger
       return nil if value.nil?
       value = Marshal.load value unless raw
       return value
@@ -333,12 +333,58 @@ class MemCache
     with_server(key) do |server, cache_key|
 
       value = Marshal.dump value unless raw
-      logger.debug { "SET #{key} to #{server.inspect}: #{value ? value.to_s.size : 'nil'}" } if logger
-
       data = value.to_s
+      logger.debug { "set #{key} to #{server.inspect}: #{data.size}" } if logger
+
       raise MemCacheError, "Value too large, memcached can only store 1MB of data per key" if data.size > ONE_MB
 
       command = "set #{cache_key} 0 #{expiry} #{data.size}#{noreply}\r\n#{data}\r\n"
+
+      with_socket_management(server) do |socket|
+        socket.write command
+        break nil if @no_reply
+        result = socket.gets
+        raise_on_error_response! result
+
+        if result.nil?
+          server.close
+          raise MemCacheError, "lost connection to #{server.host}:#{server.port}"
+        end
+
+        result
+      end
+    end
+  end
+
+  ##
+  # "cas" is a check and set operation which means "store this data but
+  # only if no one else has updated since I last fetched it."  This can
+  # be used as a form of optimistic locking.
+  #
+  # Works in block form like so:
+  #   cache.cas('some-key') do |value|
+  #     value + 1
+  #   end
+  #
+  # Returns:
+  # +nil+ if the value was not found on the memcached server.
+  # +STORED+ if the value was updated successfully
+  # +EXISTS+ if the value was updated by someone else since last fetch
+
+  def cas(key, expiry=0, raw=false)
+    raise MemCacheError, "Update of readonly cache" if @readonly
+    raise MemCacheError, "A block is required" unless block_given?
+
+    (value, token) = gets(key, raw)
+    return nil unless value
+    updated = yield value
+
+    with_server(key) do |server, cache_key|
+      logger.debug { "cas #{key} to #{server.inspect}: #{data.size}" } if logger
+
+      value = Marshal.dump updated unless raw
+      data = value.to_s
+      command = "cas #{cache_key} 0 #{expiry} #{value.size} #{token}#{noreply}\r\n#{value}\r\n"
 
       with_socket_management(server) do |socket|
         socket.write command
@@ -368,7 +414,7 @@ class MemCache
     raise MemCacheError, "Update of readonly cache" if @readonly
     with_server(key) do |server, cache_key|
       value = Marshal.dump value unless raw
-      logger.debug { "ADD #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
+      logger.debug { "add #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
       command = "add #{cache_key} 0 #{expiry} #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
 
       with_socket_management(server) do |socket|
@@ -389,7 +435,7 @@ class MemCache
     raise MemCacheError, "Update of readonly cache" if @readonly
     with_server(key) do |server, cache_key|
       value = Marshal.dump value unless raw
-      logger.debug { "REPLACE #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
+      logger.debug { "replace #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
       command = "replace #{cache_key} 0 #{expiry} #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
 
       with_socket_management(server) do |socket|
@@ -409,7 +455,7 @@ class MemCache
   def append(key, value)
     raise MemCacheError, "Update of readonly cache" if @readonly
     with_server(key) do |server, cache_key|
-      logger.debug { "APPEND #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
+      logger.debug { "append #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
       command = "append #{cache_key} 0 0 #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
 
       with_socket_management(server) do |socket|
@@ -429,7 +475,7 @@ class MemCache
   def prepend(key, value)
     raise MemCacheError, "Update of readonly cache" if @readonly
     with_server(key) do |server, cache_key|
-      logger.debug { "PREPEND #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
+      logger.debug { "prepend #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
       command = "prepend #{cache_key} 0 0 #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
 
       with_socket_management(server) do |socket|
@@ -449,6 +495,7 @@ class MemCache
     raise MemCacheError, "Update of readonly cache" if @readonly
     with_server(key) do |server, cache_key|
       with_socket_management(server) do |socket|
+        logger.debug { "delete #{cache_key} on #{server}" } if logger
         socket.write "delete #{cache_key} #{expiry}#{noreply}\r\n"
         break nil if @no_reply
         result = socket.gets
@@ -475,6 +522,7 @@ class MemCache
       delay_time = 0
       @servers.each do |server|
         with_socket_management(server) do |socket|
+          logger.debug { "flush_all #{delay_time} on #{server}" } if logger
           socket.write "flush_all #{delay_time}#{noreply}\r\n"
           break nil if @no_reply
           result = socket.gets
@@ -669,6 +717,38 @@ class MemCache
       return value
     end
   end
+
+  def gets(key, raw = false)
+    with_server(key) do |server, cache_key|
+      logger.debug { "gets #{key} from #{server.inspect}: #{value ? value.to_s.size : 'nil'}" } if logger
+      result = with_socket_management(server) do |socket|
+        socket.write "gets #{cache_key}\r\n"
+        keyline = socket.gets # "VALUE <key> <flags> <bytes> <cas token>\r\n"
+
+        if keyline.nil? then
+          server.close
+          raise MemCacheError, "lost connection to #{server.host}:#{server.port}"
+        end
+
+        raise_on_error_response! keyline
+        return nil if keyline == "END\r\n"
+
+        unless keyline =~ /(\d+) (\w+)\r/ then
+          server.close
+          raise MemCacheError, "unexpected response #{keyline.inspect}"
+        end
+        value = socket.read $1.to_i
+        socket.read 2 # "\r\n"
+        socket.gets   # "END\r\n"
+        [value, $2]
+      end
+      result[0] = Marshal.load result[0] unless raw
+      result
+    end
+  rescue TypeError => err
+    handle_error nil, err
+  end
+
 
   ##
   # Fetches +cache_keys+ from +server+ using a multi-get.

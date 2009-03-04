@@ -1080,6 +1080,12 @@ class TestMemCache < Test::Unit::TestCase
       cache.flush_all
       workers = []
 
+      cache.set('f', 'zzz')
+      assert_equal "STORED\r\n", (cache.cas('f') do |value|
+        value << 'z'
+      end)
+      assert_equal 'zzzz', cache.get('f')
+
       # Have a bunch of threads perform a bunch of operations at the same time.
       # Verify the result of each operation to ensure the request and response
       # are not intermingled between threads.
@@ -1091,6 +1097,10 @@ class TestMemCache < Test::Unit::TestCase
             cache.add('c', 10, 0, true)
             cache.set('d', 'a', 100, true)
             cache.set('e', 'x', 100, true)
+            cache.set('f', 'zzz')
+            assert_not_nil(cache.cas('f') do |value|
+              value << 'z'
+            end)
             cache.append('d', 'b')
             cache.prepend('e', 'y')
             assert_equal "NOT_STORED\r\n", cache.add('a', 11)
