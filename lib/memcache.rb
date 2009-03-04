@@ -385,19 +385,27 @@ class MemCache
 
   ##
   # Flush the cache from all memcache servers.
+  # A non-zero value for +delay+ will ensure that the flush
+  # is propogated slowly through your memcached server farm.
+  # The Nth server will be flushed N*delay seconds from now,
+  # asynchronously so this method returns quickly.
+  # This prevents a huge database spike due to a total
+  # flush all at once.
 
-  def flush_all
+  def flush_all(delay=0)
     raise MemCacheError, 'No active servers' unless active?
     raise MemCacheError, "Update of readonly cache" if @readonly
 
     begin
+      delay_time = 0
       @servers.each do |server|
         with_socket_management(server) do |socket|
-          socket.write "flush_all\r\n"
+          socket.write "flush_all #{delay_time}\r\n"
           result = socket.gets
           raise_on_error_response! result
           result
         end
+        delay_time += delay
       end
     rescue IndexError => err
       handle_error nil, err

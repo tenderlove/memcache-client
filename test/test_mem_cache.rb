@@ -902,8 +902,20 @@ class TestMemCache < Test::Unit::TestCase
 
     @cache.flush_all
 
-    expected = "flush_all\r\n"
+    expected = "flush_all 0\r\n"
     @cache.servers.each do |server|
+      assert_equal expected, server.socket.written.string
+    end
+  end
+
+  def test_flush_all_with_delay
+    @cache.servers = []
+    3.times { @cache.servers << FakeServer.new }
+
+    @cache.flush_all(10)
+
+    @cache.servers.each_with_index do |server, idx|
+      expected = "flush_all #{idx*10}\r\n"
       assert_equal expected, server.socket.written.string
     end
   end
@@ -924,7 +936,7 @@ class TestMemCache < Test::Unit::TestCase
       @cache.flush_all
     end
 
-    assert_match /flush_all\r\n/, socket.written.string
+    assert_match /flush_all 0\r\n/, socket.written.string
   end
 
   def test_stats
