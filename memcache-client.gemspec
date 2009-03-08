@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
 	s.name = 'memcache-client'
-	s.version = '1.6.5'
+	s.version = '1.7.0'
 	s.authors = ['Eric Hodel', 'Robert Cottrell', 'Mike Perham']
 	s.email = 'mperham@gmail.com'
 	s.homepage = 'http://github.com/mperham/memcache-client'
@@ -10,6 +10,6 @@ Gem::Specification.new do |s|
 
 	s.require_path = 'lib'
 
-	s.files = ["README.rdoc", "LICENSE.txt", "History.txt", "Rakefile", "lib/memcache.rb"]
+	s.files = ["README.rdoc", "LICENSE.txt", "History.rdoc", "Rakefile", "lib/memcache.rb"]
 	s.test_files = ["test/test_mem_cache.rb"]
 end
