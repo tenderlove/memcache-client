@@ -1,3 +1,9 @@
+= 1.7.1
+
+* Performance optimization.  Rely on higher performance operating system socket timeouts for 
+  low-level socket read/writes where possible, instead of the (slower) SystemTimer or (slowest,
+  unreliable) Timeout libraries.
+
 = 1.7.0 (2009-03-08)
 
 * Go through the memcached protocol document and implement any commands not already implemented:
