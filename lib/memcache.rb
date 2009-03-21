@@ -1114,3 +1114,4 @@ module Continuum
     end
   end
 end
+require 'continuum_native'
