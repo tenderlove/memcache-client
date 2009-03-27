@@ -223,7 +223,7 @@ class MemCache
 
   def get(key, raw = false)
     with_server(key) do |server, cache_key|
-      logger.debug { "get #{key} from #{server.inspect}: #{value ? value.to_s.size : 'nil'}" } if logger
+      logger.debug { "get #{key} from #{server.inspect}" } if logger
       value = cache_get server, cache_key
       return nil if value.nil?
       value = Marshal.load value unless raw
