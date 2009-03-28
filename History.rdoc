@@ -9,8 +9,8 @@
     silently falls back to pure Ruby if anything fails.  Make sure you run:
     `gem install RubyInline` if you want ultimate performance.
   * the changes make memcache-client 100% faster than 1.7.0 in my performance test on Ruby 1.8.6: 
-    15 sec -> 7 sec.
-* Fix issues with logging
+    15 sec -> 8 sec.
+* Fix several logging issues.
 
 = 1.7.0 (2009-03-08)
 
