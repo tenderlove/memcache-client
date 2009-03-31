@@ -1,4 +1,4 @@
-= 1.7.1
+= 1.7.1 (2009-03-28)
 
 * Performance optimizations: 
   * Rely on higher performance operating system socket timeouts for low-level socket 
