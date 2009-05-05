@@ -11,12 +11,12 @@ begin
   #   http://ph7spot.com/articles/system_timer
   # We don't want to bother trying to load SystemTimer on jruby and
   # ruby 1.9+.
-  if !defined?(RUBY_ENGINE)
-    require 'system_timer'
-    MemCacheTimer = SystemTimer
-  else
+  if defined?(JRUBY_VERSION) || (RUBY_VERSION >= '1.9')
     require 'timeout'
     MemCacheTimer = Timeout
+  else
+    require 'system_timer'
+    MemCacheTimer = SystemTimer
   end
 rescue LoadError => e
   puts "[memcache-client] Could not load SystemTimer gem, falling back to Ruby's slower/unsafe timeout library: #{e.message}"
