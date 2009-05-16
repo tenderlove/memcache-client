@@ -521,7 +521,11 @@ class MemCache
       @servers.each do |server|
         with_socket_management(server) do |socket|
           logger.debug { "flush_all #{delay_time} on #{server}" } if logger
-          socket.write "flush_all #{delay_time}#{noreply}\r\n"
+          if delay == 0 # older versions of memcached will fail silently otherwise
+            socket.write "flush_all\r\n"
+          else
+            socket.write "flush_all #{delay_time}#{noreply}\r\n"
+          end
           break nil if @no_reply
           result = socket.gets
           raise_on_error_response! result
