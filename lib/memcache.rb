@@ -1019,7 +1019,7 @@ class MemCache
     end
 
     def connect_to(host, port, timeout=nil)
-      s = TCPSocket.new(host, port, 0)
+      s = TCPSocket.new(host, port)
       if timeout
         s.instance_eval <<-EOR
           alias :blocking_gets :gets
