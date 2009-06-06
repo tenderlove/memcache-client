@@ -26,17 +26,6 @@ You can increase the timeout or disable them completely with the following confi
 == The new memcache-client is slower than 1.5.0!?
 
 Yes, in the simplest case, 1.6.x+ is slower than 1.5.0.  If you just have a single memcached
-server, the latest memcache-client will be significantly slower.  This is because 1.5.0 does not
+server, the latest memcache-client will be slower.  This is because 1.5.0 does not
 timeout network operations.  For reliability purposes, memcache-client 1.6.x+ enables 
-timeouts by default.
-
-Unfortunately Ruby's network timeout options are not very performant.  If you want timeouts, the
-best you can do currently is install the SystemTimer gem, which will approximately halve the
-overhead incurred by timeouts.  If you need ultimate speed, you can disable timeouts or use Fauna's
-memcached library which moves most of the client into native C.  (Hint: if you are looking for a fun
-tuning project and are good with C, the SystemTimer gem has a lot of room for improvement in 
-performance.)
-
-If you are using multiple memcached servers, 1.6.x+ will be much faster than 1.5.0 as 1.5.0 had an
-extremely slow hashing function to map a key to a server.  Overall, production environments with
-multiple servers should see performance and reliability improvements in memcache-client 1.6.x+.
+timeouts by default.  Most of this performance penalty is now gone in 1.7.3 and later.

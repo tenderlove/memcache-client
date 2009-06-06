@@ -4,7 +4,7 @@ require 'socket'
 require 'thread'
 require 'zlib'
 require 'digest/sha1'
-require 'memcache/buffered_io'
+require 'net/protocol'
 
 ##
 # A Ruby client library for memcached.
@@ -15,7 +15,7 @@ class MemCache
   ##
   # The version of MemCache you are using.
 
-  VERSION = '1.7.2'
+  VERSION = '1.7.3'
 
   ##
   # Default options for the cache object.
@@ -1037,6 +1037,33 @@ class MemCache
 
   class MemCacheError < RuntimeError; end
 
+  class BufferedIO < Net::BufferedIO # :nodoc:
+    BUFSIZE = 1024 * 16
+
+    # An implementation similar to this is in *trunk* for 1.9.  When it
+    # gets released, this method can be removed when using 1.9
+    def rbuf_fill
+      begin
+        @rbuf << @io.read_nonblock(BUFSIZE)
+      rescue Errno::EWOULDBLOCK
+        retry unless @read_timeout
+        if IO.select([@io], nil, nil, @read_timeout)
+          retry
+        else
+          raise Timeout::Error
+        end
+      end
+    end
+
+    def setsockopt *args
+      @io.setsockopt *args
+    end
+
+    def gets
+      readuntil("\n")
+    end
+  end
+
 end
 
 module Continuum
@@ -1076,5 +1103,6 @@ module Continuum
       "<#{value}, #{server.host}:#{server.port}>"
     end
   end
+
 end
 require 'continuum_native'

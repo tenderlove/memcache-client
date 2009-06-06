@@ -1,5 +1,7 @@
-= Unreleased
+= 1.7.3 (2009-06-06)
 
+* Remove SystemTimer support, refactor I/O to use nonblocking operations.  Speeds up
+  performance approx 100%. Timeouts basically have no overhead now!  (tenderlove)
 * Update load logic to support SystemTimer running in Ruby Enterprise Edition.  Thanks
   to splattael on github for the comment.
 
