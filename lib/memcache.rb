@@ -4,25 +4,7 @@ require 'socket'
 require 'thread'
 require 'zlib'
 require 'digest/sha1'
-
-begin
-  # Try to use the SystemTimer gem instead of Ruby's timeout library
-  # when running on something that looks like Ruby 1.8.x.  See:
-  #   http://ph7spot.com/articles/system_timer
-  # We don't want to bother trying to load SystemTimer on jruby and
-  # ruby 1.9+.
-  if defined?(JRUBY_VERSION) || (RUBY_VERSION >= '1.9')
-    require 'timeout'
-    MemCacheTimer = Timeout
-  else
-    require 'system_timer'
-    MemCacheTimer = SystemTimer
-  end
-rescue LoadError => e
-  puts "[memcache-client] Could not load SystemTimer gem, falling back to Ruby's slower/unsafe timeout library: #{e.message}"
-  require 'timeout'
-  MemCacheTimer = Timeout
-end
+require 'memcache/buffered_io'
 
 ##
 # A Ruby client library for memcached.
@@ -1019,30 +1001,9 @@ class MemCache
     end
 
     def connect_to(host, port, timeout=nil)
-      s = TCPSocket.new(host, port)
-      if timeout
-        s.instance_eval <<-EOR
-          alias :blocking_gets :gets
-          def gets(*args)
-            MemCacheTimer.timeout(#{timeout}) do
-              self.blocking_gets(*args)
-            end
-          end
-          alias :blocking_read :read
-          def read(*args)
-            MemCacheTimer.timeout(#{timeout}) do
-              self.blocking_read(*args)
-            end
-          end
-          alias :blocking_write :write
-          def write(*args)
-            MemCacheTimer.timeout(#{timeout}) do
-              self.blocking_write(*args)
-            end
-          end
-        EOR
-      end
-      s
+      io = MemCache::BufferedIO.new(TCPSocket.new(host, port))
+      io.read_timeout = timeout
+      io
     end
 
     ##
