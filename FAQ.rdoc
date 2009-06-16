@@ -23,9 +23,9 @@ You can increase the timeout or disable them completely with the following confi
   MemCache.new ['server1', 'server2'], { :timeout => 1.0 } # 1 second timeout
 
 
-== The new memcache-client is slower than 1.5.0!?
+== Isn't Evan Weaver's memcached gem faster?
 
-Yes, in the simplest case, 1.6.x+ is slower than 1.5.0.  If you just have a single memcached
-server, the latest memcache-client will be slower.  This is because 1.5.0 does not
-timeout network operations.  For reliability purposes, memcache-client 1.6.x+ enables 
-timeouts by default.  Most of this performance penalty is now gone in 1.7.3 and later.
+The latest version of memcached-client is anywhere from 33% to 100% slower than memcached in various benchmarks.  Keep in mind this means that 10,000 get requests take 1.8 sec instead of 1.2 seconds.
+In practice, memcache-client is unlikely to be a bottleneck in your system but there is always going
+to be an overhead to pure Ruby.  Evan's memcached gem is a thin wrapper around a C library, which
+makes it very fast but also difficult to install for some people.
