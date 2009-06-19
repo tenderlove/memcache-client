@@ -90,8 +90,7 @@ class MemCache
   #   [:failover]    Should the client try to failover to another server if the
   #                  first server is down?  Defaults to true.
   #   [:timeout]     Time to use as the socket read timeout.  Defaults to 0.5 sec,
-  #                  set to nil to disable timeouts (this is a major performance penalty in Ruby 1.8,
-  #                  "gem install SystemTimer' to remove most of the penalty).
+  #                  set to nil to disable timeouts.
   #   [:logger]      Logger to use for info/debug output, defaults to nil
   #   [:no_reply]    Don't bother looking for a reply for write operations (i.e. they
   #                  become 'fire and forget'), memcached 1.2.5 and later only, speeds up
