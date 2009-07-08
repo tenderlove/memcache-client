@@ -776,6 +776,38 @@ class TestMemCache < Test::Unit::TestCase
     assert_equal 'Update of readonly cache', e.message
   end
 
+  def test_check_size_on
+    cache = MemCache.new :check_size => true
+
+    server = FakeServer.new
+    server.socket.data.write "STORED\r\n"
+    server.socket.data.rewind
+
+    cache.servers = []
+    cache.servers << server
+
+    e = assert_raise MemCache::MemCacheError do
+      cache.set 'key', 'v' * 1048577
+    end
+
+    assert_equal 'Value too large, memcached can only store 1MB of data per key', e.message
+  end
+
+  def test_check_size_off
+    cache = MemCache.new :check_size => false
+
+    server = FakeServer.new
+    server.socket.data.write "STORED\r\n"
+    server.socket.data.rewind
+
+    cache.servers = []
+    cache.servers << server
+
+    assert_nothing_raised do
+      cache.set 'key', 'v' * 1048577
+    end
+  end
+
   def test_set_too_big
     server = FakeServer.new
 

@@ -28,6 +28,7 @@ class MemCache
     :timeout     => 0.5,
     :logger      => nil,
     :no_reply    => false,
+    :check_size  => true
   }
 
   ##
@@ -126,6 +127,7 @@ class MemCache
     @failover    = opts[:failover]
     @logger      = opts[:logger]
     @no_reply    = opts[:no_reply]
+    @check_size  = opts[:check_size]
     @mutex       = Mutex.new if @multithread
 
     logger.info { "memcache-client #{VERSION} #{Array(servers).inspect}" } if logger
@@ -316,7 +318,9 @@ class MemCache
       value = Marshal.dump value unless raw
       logger.debug { "set #{key} to #{server.inspect}: #{value.to_s.size}" } if logger
 
-      raise MemCacheError, "Value too large, memcached can only store 1MB of data per key" if value.to_s.size > ONE_MB
+      if @check_size && value.to_s.size > ONE_MB
+        raise MemCacheError, "Value too large, memcached can only store 1MB of data per key"
+      end
 
       command = "set #{cache_key} 0 #{expiry} #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
 
