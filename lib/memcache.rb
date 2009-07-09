@@ -96,6 +96,8 @@ class MemCache
   #   [:no_reply]    Don't bother looking for a reply for write operations (i.e. they
   #                  become 'fire and forget'), memcached 1.2.5 and later only, speeds up
   #                  set/add/delete/incr/decr significantly.
+  #   [:check_size]  Raises a MemCacheError if the value to be set is greater than 1 MB, which
+  #                  is the maximum key size for the standard memcached server.  Defaults to true.
   #
   # Other options are ignored.
 
