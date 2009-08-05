@@ -315,9 +315,9 @@ class MemCache
 
   def set(key, value, expiry = 0, raw = false)
     raise MemCacheError, "Update of readonly cache" if @readonly
-    with_server(key) do |server, cache_key|
 
-      value = Marshal.dump value unless raw
+    value = Marshal.dump value unless raw
+    with_server(key) do |server, cache_key|
       logger.debug { "set #{key} to #{server.inspect}: #{value.to_s.size}" } if logger
 
       if @check_size && value.to_s.size > ONE_MB
@@ -364,10 +364,9 @@ class MemCache
     (value, token) = gets(key, raw)
     return nil unless value
     updated = yield value
+    value = Marshal.dump updated unless raw
 
     with_server(key) do |server, cache_key|
-
-      value = Marshal.dump updated unless raw
       logger.debug { "cas #{key} to #{server.inspect}: #{value.to_s.size}" } if logger
       command = "cas #{cache_key} 0 #{expiry} #{value.to_s.size} #{token}#{noreply}\r\n#{value}\r\n"
 
@@ -397,8 +396,8 @@ class MemCache
 
   def add(key, value, expiry = 0, raw = false)
     raise MemCacheError, "Update of readonly cache" if @readonly
+    value = Marshal.dump value unless raw
     with_server(key) do |server, cache_key|
-      value = Marshal.dump value unless raw
       logger.debug { "add #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
       command = "add #{cache_key} 0 #{expiry} #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
 
@@ -418,8 +417,8 @@ class MemCache
   # If +raw+ is true, +value+ will not be Marshalled.
   def replace(key, value, expiry = 0, raw = false)
     raise MemCacheError, "Update of readonly cache" if @readonly
+    value = Marshal.dump value unless raw
     with_server(key) do |server, cache_key|
-      value = Marshal.dump value unless raw
       logger.debug { "replace #{key} to #{server}: #{value ? value.to_s.size : 'nil'}" } if logger
       command = "replace #{cache_key} 0 #{expiry} #{value.to_s.size}#{noreply}\r\n#{value}\r\n"
 
