@@ -5,7 +5,6 @@ require 'thread'
 require 'zlib'
 require 'digest/sha1'
 require 'net/protocol'
-require 'md5'
 
 ##
 # A Ruby client library for memcached.
@@ -55,7 +54,7 @@ class MemCache
 
   ##
   # Whether to try to fix keys that are too long and will be truncated by
-  # using their md5 hash instead.
+  # using their SHA1 hash instead.
   # The hash is only used on keys longer than 250 characters, or containing spaces,
   # to avoid impacting performance unnecesarily.
   #
@@ -114,7 +113,7 @@ class MemCache
   #   [:check_size]   Raises a MemCacheError if the value to be set is greater than 1 MB, which
   #                   is the maximum key size for the standard memcached server.  Defaults to true.
   #   [:autofix_keys] If a key is longer than 250 characters or contains spaces, 
-  #                   use an md5 hash instead, to prevent collisions on truncated keys.
+  #                   use an SHA1 hash instead, to prevent collisions on truncated keys.
   # Other options are ignored.
 
   def initialize(*args)
@@ -643,7 +642,7 @@ class MemCache
 
   def make_cache_key(key)
     if @autofix_keys and (key =~ /\s/ or (key.length + (namespace.nil? ? 0 : namespace.length)) > 250)
-      key = "#{MD5.new(key).hexdigest}-autofixed"
+      key = "#{Digest::SHA1.hexdigest(key)}-autofixed"
     end
 
     if namespace.nil? then
