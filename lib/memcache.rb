@@ -5,6 +5,7 @@ require 'thread'
 require 'zlib'
 require 'digest/sha1'
 require 'net/protocol'
+require 'md5'
 
 ##
 # A Ruby client library for memcached.
@@ -21,14 +22,15 @@ class MemCache
   # Default options for the cache object.
 
   DEFAULT_OPTIONS = {
-    :namespace   => nil,
-    :readonly    => false,
-    :multithread => true,
-    :failover    => true,
-    :timeout     => 0.5,
-    :logger      => nil,
-    :no_reply    => false,
-    :check_size  => true
+    :namespace    => nil,
+    :readonly     => false,
+    :multithread  => true,
+    :failover     => true,
+    :timeout      => 0.5,
+    :logger       => nil,
+    :no_reply     => false,
+    :check_size   => true,
+    :autofix_keys => false
   }
 
   ##
@@ -51,6 +53,19 @@ class MemCache
 
   attr_reader :multithread
 
+  ##
+  # Whether to try to fix keys that are too long and will be truncated by
+  # using their md5 hash instead.
+  # The hash is only used on keys longer than 250 characters, or containing spaces,
+  # to avoid impacting performance unnecesarily.
+  #
+  # In theory, your code should generate correct keys when calling memcache, 
+  # so it's your responsibility and you should try to fix this problem at its source.
+  #
+  # But if that's not possible, enable this option and memcache-client will give you a hand.
+  
+  attr_reader :autofix_keys
+  
   ##
   # The servers this client talks to.  Play at your own peril.
 
@@ -85,20 +100,21 @@ class MemCache
   #
   # Valid options for +opts+ are:
   #
-  #   [:namespace]   Prepends this value to all keys added or retrieved.
-  #   [:readonly]    Raises an exception on cache writes when true.
-  #   [:multithread] Wraps cache access in a Mutex for thread safety. Defaults to true.
-  #   [:failover]    Should the client try to failover to another server if the
-  #                  first server is down?  Defaults to true.
-  #   [:timeout]     Time to use as the socket read timeout.  Defaults to 0.5 sec,
-  #                  set to nil to disable timeouts.
-  #   [:logger]      Logger to use for info/debug output, defaults to nil
-  #   [:no_reply]    Don't bother looking for a reply for write operations (i.e. they
-  #                  become 'fire and forget'), memcached 1.2.5 and later only, speeds up
-  #                  set/add/delete/incr/decr significantly.
-  #   [:check_size]  Raises a MemCacheError if the value to be set is greater than 1 MB, which
-  #                  is the maximum key size for the standard memcached server.  Defaults to true.
-  #
+  #   [:namespace]    Prepends this value to all keys added or retrieved.
+  #   [:readonly]     Raises an exception on cache writes when true.
+  #   [:multithread]  Wraps cache access in a Mutex for thread safety. Defaults to true.
+  #   [:failover]     Should the client try to failover to another server if the
+  #                   first server is down?  Defaults to true.
+  #   [:timeout]      Time to use as the socket read timeout.  Defaults to 0.5 sec,
+  #                   set to nil to disable timeouts.
+  #   [:logger]       Logger to use for info/debug output, defaults to nil
+  #   [:no_reply]     Don't bother looking for a reply for write operations (i.e. they
+  #                   become 'fire and forget'), memcached 1.2.5 and later only, speeds up
+  #                   set/add/delete/incr/decr significantly.
+  #   [:check_size]   Raises a MemCacheError if the value to be set is greater than 1 MB, which
+  #                   is the maximum key size for the standard memcached server.  Defaults to true.
+  #   [:autofix_keys] If a key is longer than 250 characters or contains spaces, 
+  #                   use an md5 hash instead, to prevent collisions on truncated keys.
   # Other options are ignored.
 
   def initialize(*args)
@@ -122,15 +138,16 @@ class MemCache
     end
 
     opts = DEFAULT_OPTIONS.merge opts
-    @namespace   = opts[:namespace]
-    @readonly    = opts[:readonly]
-    @multithread = opts[:multithread]
-    @timeout     = opts[:timeout]
-    @failover    = opts[:failover]
-    @logger      = opts[:logger]
-    @no_reply    = opts[:no_reply]
-    @check_size  = opts[:check_size]
-    @mutex       = Mutex.new if @multithread
+    @namespace    = opts[:namespace]
+    @readonly     = opts[:readonly]
+    @multithread  = opts[:multithread]
+    @autofix_keys = opts[:autofix_keys]
+    @timeout      = opts[:timeout]
+    @failover     = opts[:failover]
+    @logger       = opts[:logger]
+    @no_reply     = opts[:no_reply]
+    @check_size   = opts[:check_size]
+    @mutex        = Mutex.new if @multithread
 
     logger.info { "memcache-client #{VERSION} #{Array(servers).inspect}" } if logger
 
@@ -625,6 +642,10 @@ class MemCache
   # requested.
 
   def make_cache_key(key)
+    if @autofix_keys and (key =~ /\s/ or (key.length + (namespace.nil? ? 0 : namespace.length)) > 250)
+      key = "#{MD5.new(key).hexdigest}-autofixed"
+    end
+
     if namespace.nil? then
       key
     else

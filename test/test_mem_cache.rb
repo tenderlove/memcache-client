@@ -18,7 +18,8 @@ require File.dirname(__FILE__) + '/../lib/memcache' if not defined?(MemCache)
 class MemCache
 
   attr_writer :namespace
-
+  attr_writer :autofix_keys
+  
 end
 
 class FakeSocket
@@ -717,6 +718,37 @@ class TestMemCache < Test::Unit::TestCase
     assert_equal 'key', @cache.make_cache_key('key')
   end
 
+  def test_make_cache_key_without_autofix
+    @cache.autofix_keys = false
+
+    key = "keys with more than two hundred and fifty characters can cause problems, because they get truncated and start colliding with each other. It's not a common occurrence, but when it happens is very hard to debug. the autofix option takes care of that for you"
+    hash = "4c31632e0b52c2ae9682f6644555c87b" #MD5.new(key).hexdigest
+    @cache.namespace = nil
+    assert_equal key, @cache.make_cache_key(key)
+
+    @cache.autofix_keys = true
+
+    @cache.namespace = "my_namespace"
+    assert_equal 'my_namespace:key', @cache.make_cache_key('key')
+    @cache.namespace = nil
+    assert_equal 'key', @cache.make_cache_key('key')
+    
+    key = "keys with more than two hundred and fifty characters can cause problems, because they get truncated and start colliding with each other. It's not a common occurrence, but when it happens is very hard to debug. the autofix option takes care of that for you"
+    hash = "4c31632e0b52c2ae9682f6644555c87b" #MD5.new(key).hexdigest
+    
+    @cache.namespace = "my_namespace"
+    assert_equal "my_namespace:#{hash}-autofixed", @cache.make_cache_key(key)
+    @cache.namespace = nil
+    assert_equal "#{hash}-autofixed", @cache.make_cache_key(key)
+    
+    key = "a short key with spaces"
+    hash = "3f0a4d748ac5d84338be863f9e446a8e" #MD5.new(key).hexdigest
+    @cache.namespace = "my_namespace"
+    assert_equal "my_namespace:#{hash}-autofixed", @cache.make_cache_key(key)
+    @cache.namespace = nil
+    assert_equal "#{hash}-autofixed", @cache.make_cache_key(key)
+  end
+  
   def test_servers
     server = FakeServer.new
     @cache.servers = []

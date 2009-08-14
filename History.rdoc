@@ -4,6 +4,7 @@
   Use :check_size => false to disable the size check. (jsl)
 * Ruby 1.9 support for recent I/O changes.
 * Fix duplicate value marshalling on server error. (rajiv)
+* Added option :autofix_keys (disabled by default) to replace long keys with md5 hashes (sd)
 
 = 1.7.4 (2009-06-09)
 
