@@ -270,7 +270,7 @@ class TestMemCache < Test::Unit::TestCase
       @cache.cache_get(server, 'my_namespace:key')
     end
 
-    assert_match /#{Regexp.quote 'No connection to server (NOT CONNECTED)'}/, e.message
+    assert_match(/#{Regexp.quote 'No connection to server (NOT CONNECTED)'}/, e.message)
 
     assert !server.alive?
   end
@@ -328,7 +328,7 @@ class TestMemCache < Test::Unit::TestCase
       @cache.cache_get_multi server, 'my_namespace:key'
     end
 
-    assert_match /#{Regexp.quote 'No connection to server (NOT CONNECTED)'}/, e.message
+    assert_match(/#{Regexp.quote 'No connection to server (NOT CONNECTED)'}/, e.message)
 
     assert !server.alive?
   end
@@ -564,7 +564,7 @@ class TestMemCache < Test::Unit::TestCase
       @cache.get 'key'
     end
 
-    assert_match /^No connection to server/, e.message
+    assert_match(/^No connection to server/, e.message)
   end
 
   def test_get_no_servers
@@ -853,7 +853,7 @@ class TestMemCache < Test::Unit::TestCase
       @cache.set 'key', 'v'
     end
 
-    assert_match /object too large for cache/, e.message
+    assert_match(/object too large for cache/, e.message)
   end
 
   def test_prepend
@@ -1040,7 +1040,7 @@ class TestMemCache < Test::Unit::TestCase
       @cache.flush_all
     end
 
-    assert_match /flush_all\r\n/, socket.written.string
+    assert_match(/flush_all\r\n/, socket.written.string)
   end
   
   def test_flush_all_for_real
@@ -1096,8 +1096,8 @@ class TestMemCache < Test::Unit::TestCase
     end
 
     output = server.socket.written.string
-    assert_match /set my_namespace:test/, output
-    assert_match /test value/, output
+    assert_match(/set my_namespace:test/, output)
+    assert_match(/test value/, output)
   end
 
   def test_basic_unthreaded_operations_should_work
@@ -1119,8 +1119,8 @@ class TestMemCache < Test::Unit::TestCase
     end
 
     output = server.socket.written.string
-    assert_match /set my_namespace:test/, output
-    assert_match /test value/, output
+    assert_match(/set my_namespace:test/, output)
+    assert_match(/test value/, output)
   end
 
   def util_setup_fake_server
@@ -1185,9 +1185,9 @@ class TestMemCache < Test::Unit::TestCase
             assert cache.decr('c', 5) > 14
             assert_equal 11, cache.get('b')
             d = cache.get('d', true)
-            assert_match /\Aab*\Z/, d
+            assert_match(/\Aab*\Z/, d)
             e = cache.get('e', true)
-            assert_match /\Ay*x\Z/, e
+            assert_match(/\Ay*x\Z/, e)
           end
         end
       end

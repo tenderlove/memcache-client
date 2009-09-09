@@ -1079,8 +1079,8 @@ class MemCache
       end
     end
 
-    def setsockopt *args
-      @io.setsockopt *args
+    def setsockopt(*args)
+      @io.setsockopt(*args)
     end
 
     def gets

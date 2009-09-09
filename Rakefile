@@ -26,7 +26,9 @@ Rake::RDocTask.new do |rd|
 	rd.rdoc_dir = 'doc'
 end
 
-Rake::TestTask.new
+Rake::TestTask.new do |t|
+  t.warning = true
+end
 
 task :default => :test
 
