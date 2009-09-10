@@ -1,5 +1,6 @@
-= 1.7.5 (unreleased)
+= 1.7.5 (2009-09-09)
 
+* Fix ruby warnings (josh)
 * Make megabyte value size limit optional since Tokyo Tyrant can accept values larger than 1MB.
   Use :check_size => false to disable the size check. (jsl)
 * Ruby 1.9 support for recent I/O changes.
