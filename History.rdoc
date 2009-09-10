@@ -1,3 +1,9 @@
+= 1.7.6 (unreleased)
+
+* Add option to configure the namespace separator string, for interop with Perl
+  which does not use a separator character:
+    MemCache.new(servers, :namespace_separator => '')
+
 = 1.7.5 (2009-09-09)
 
 * Fix ruby warnings (josh)

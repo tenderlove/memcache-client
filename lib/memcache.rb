@@ -29,7 +29,8 @@ class MemCache
     :logger       => nil,
     :no_reply     => false,
     :check_size   => true,
-    :autofix_keys => false
+    :autofix_keys => false,
+    :namespace_separator => ':',
   }
 
   ##
@@ -146,6 +147,7 @@ class MemCache
     @logger       = opts[:logger]
     @no_reply     = opts[:no_reply]
     @check_size   = opts[:check_size]
+    @namespace_separator = opts[:namespace_separator]
     @mutex        = Mutex.new if @multithread
 
     logger.info { "memcache-client #{VERSION} #{Array(servers).inspect}" } if logger
@@ -648,7 +650,7 @@ class MemCache
     if namespace.nil? then
       key
     else
-      "#{@namespace}:#{key}"
+      "#{@namespace}#{@namespace_separator}#{key}"
     end
   end
 

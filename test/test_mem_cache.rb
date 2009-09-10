@@ -1100,6 +1100,25 @@ class TestMemCache < Test::Unit::TestCase
     assert_match(/test value/, output)
   end
 
+  def test_namespace_separator
+    cache = MemCache.new :namespace => 'ns', :namespace_separator => ''
+
+    server = FakeServer.new
+    server.socket.data.write "STORED\r\n"
+    server.socket.data.rewind
+
+    cache.servers = []
+    cache.servers << server
+
+    assert_nothing_raised do
+      cache.set "test", "test value"
+    end
+
+    output = server.socket.written.string
+    assert_match(/set nstest/, output)
+    assert_match(/test value/, output)
+  end
+
   def test_basic_unthreaded_operations_should_work
     cache = MemCache.new :multithread => false,
                          :namespace => 'my_namespace',
