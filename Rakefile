@@ -3,22 +3,23 @@ require 'rubygems'
 require 'rake/rdoctask'
 require 'rake/testtask'
 
-task :gem do
-	sh "gem build memcache-client.gemspec"
+begin
+  require 'jeweler'
+  Jeweler::Tasks.new do |s|
+    s.name = "memcache-client"
+    s.summary = s.description = "A Ruby library for accessing memcached."
+    s.email = "mperham@gmail.com"
+    s.homepage = "http://github.com/mperham/memcache-client"
+    s.authors = ['Eric Hodel', 'Robert Cottrell', 'Mike Perham']
+    s.has_rdoc = true
+    s.files = FileList["[A-Z]*", "{lib,test}/**/*", 'performance.txt']
+    s.test_files = FileList["test/test_*.rb"]
+  end
+
+rescue LoadError
+  puts "Jeweler not available. Install it for jeweler-related tasks with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
 end
 
-task :install => [:gem] do
-	sh "sudo gem install memcache-client-*.gem"
-end
-
-task :clean do
-	sh "rm -f memcache-client-*.gem"
-end
-
-task :publish => [:clean, :gem, :install] do
-	require 'lib/memcache'
-	sh "rubyforge add_release seattlerb memcache-client #{MemCache::VERSION} memcache-client-#{MemCache::VERSION}.gem"
-end
 
 Rake::RDocTask.new do |rd|
 	rd.main = "README.rdoc"

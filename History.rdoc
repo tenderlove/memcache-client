@@ -1,8 +1,11 @@
 = 1.7.6 (unreleased)
 
+* Reworked socket timeout code due to repeated customer issues with timeouts not
+  working 100% of the time since 1.7.3.
 * Add option to configure the namespace separator string, for interop with Perl
   which does not use a separator character:
     MemCache.new(servers, :namespace_separator => '')
+* Move to jeweler and gemcutter for RubyGem support.
 
 = 1.7.5 (2009-09-09)
 

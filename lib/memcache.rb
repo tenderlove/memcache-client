@@ -35,7 +35,10 @@ class MemCache
   ##
   # The version of MemCache you are using.
 
-  VERSION = '1.7.5'
+  VERSION = begin
+    config = YAML.load(File.read(File.dirname(__FILE__) + '/../VERSION.yml'))
+    "#{config[:major]}.#{config[:minor]}.#{config[:patch]}"
+  end
 
   ##
   # Default options for the cache object.
