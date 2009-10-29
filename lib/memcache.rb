@@ -1061,6 +1061,21 @@ class MemCache
 
       io = MemCache::BufferedIO.new(sock)
       io.read_timeout = timeout
+      # Getting reports from several customers, including 37signals,
+      # that the non-blocking timeouts in 1.7.5 don't seem to be reliable.
+      # It can't hurt to set the underlying socket timeout also, if possible.
+      if timeout
+        secs = Integer(timeout)
+        usecs = Integer((timeout - secs) * 1_000_000)
+        optval = [secs, usecs].pack("l_2")
+        begin
+          io.setsockopt Socket::SOL_SOCKET, Socket::SO_RCVTIMEO, optval
+          io.setsockopt Socket::SOL_SOCKET, Socket::SO_SNDTIMEO, optval
+        rescue Exception => ex
+          # Solaris, for one, does not like/support socket timeouts.
+          @logger.info "[memcache-client] Unable to use raw socket timeouts: #{ex.class.name}: #{ex.message}" if @logger
+        end
+      end
       io
     end
 
