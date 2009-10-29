@@ -14,10 +14,11 @@ begin
     s.has_rdoc = true
     s.files = FileList["[A-Z]*", "{lib,test}/**/*", 'performance.txt']
     s.test_files = FileList["test/test_*.rb"]
+    s.rubyforge_project = 'seattlerb'
   end
 
 rescue LoadError
-  puts "Jeweler not available. Install it for jeweler-related tasks with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
+  puts "Jeweler not available. Install it for jeweler-related tasks with: sudo gem install jeweler"
 end
 
 
