@@ -1,6 +1,6 @@
-= 1.7.6 (unreleased)
+= 1.7.6 (2009-11-03)
 
-* Reworked socket timeout code due to repeated customer issues with timeouts not
+* Reworked socket timeout code due to several customer complaints about timeouts not
   working 100% of the time since 1.7.3.
 * Add option to configure the namespace separator string, for interop with Perl
   which does not use a separator character:

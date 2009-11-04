@@ -131,3 +131,13 @@ missing:ruby:memcache-client     0.570000   0.250000   0.820000 (  1.461293)
 mixed:ruby:noblock:memcached     0.540000   0.620000   1.160000 (  2.429200)
 mixed:ruby:memcached             0.580000   0.570000   1.150000 (  2.610819)
 mixed:ruby:memcache-client       1.580000   0.540000   2.120000 (  3.632775)
+
+== 1.7.6, 1.8.7 64-bit (Snow Leopard), SystemTimer
+                                     user     system      total        real
+set:plain:memcache-client        3.070000   0.380000   3.450000 (  3.643275)
+set:ruby:memcache-client         3.140000   0.370000   3.510000 (  3.698602)
+get:plain:memcache-client        3.480000   0.360000   3.840000 (  3.983941)
+get:ruby:memcache-client         3.540000   0.360000   3.900000 (  4.034308)
+multiget:ruby:memcache-client    1.690000   0.140000   1.830000 (  1.889290)
+missing:ruby:memcache-client     3.070000   0.360000   3.430000 (  3.571754)
+mixed:ruby:memcache-client       6.720000   0.750000   7.470000 (  7.838771)
