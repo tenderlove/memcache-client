@@ -677,6 +677,13 @@ class TestMemCache < Test::Unit::TestCase
     assert_equal 'illegal character in key "space key"', e.message
   end
 
+  def test_get_server_for_blank_key
+    e = assert_raise ArgumentError do
+      @cache.get_server_for_key ''
+    end
+    assert_equal 'key cannot be blank', e.message
+  end
+
   def test_get_server_for_key_length
     @cache.get_server_for_key 'x' * 250
     long_key = 'x' * 251
