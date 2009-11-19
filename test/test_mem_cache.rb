@@ -985,7 +985,7 @@ class TestMemCache < Test::Unit::TestCase
     
     @cache.delete 'key'
     
-    expected = "delete my_namespace:key 0\r\n"
+    expected = "delete my_namespace:key\r\n"
     assert_equal expected, server.socket.written.string
   end
 
@@ -996,7 +996,7 @@ class TestMemCache < Test::Unit::TestCase
     
     @cache.delete 'key', 300
     
-    expected = "delete my_namespace:key 300\r\n"
+    expected = "delete my_namespace:key\r\n"
     assert_equal expected, server.socket.written.string
   end
 

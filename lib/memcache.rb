@@ -514,14 +514,15 @@ class MemCache
   end
 
   ##
-  # Removes +key+ from the cache in +expiry+ seconds.
+  # Removes +key+ from the cache.
+  # +expiry+ is ignored as it has been removed from the latest memcached version.
 
   def delete(key, expiry = 0)
     raise MemCacheError, "Update of readonly cache" if @readonly
     with_server(key) do |server, cache_key|
       with_socket_management(server) do |socket|
         logger.debug { "delete #{cache_key} on #{server}" } if logger
-        socket.write "delete #{cache_key} #{expiry}#{noreply}\r\n"
+        socket.write "delete #{cache_key}#{noreply}\r\n"
         break nil if @no_reply
         result = socket.gets
         raise_on_error_response! result
