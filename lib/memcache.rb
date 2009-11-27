@@ -667,15 +667,22 @@ class MemCache
   # requested.
 
   def make_cache_key(key)
-    if @autofix_keys and (key =~ /\s/ or (key.length + (namespace.nil? ? 0 : namespace.length)) > 250)
+    if @autofix_keys && (key =~ /\s/ || key_length(key) > 250)
       key = "#{Digest::SHA1.hexdigest(key)}-autofixed"
     end
 
-    if namespace.nil? then
+    if namespace.nil?
       key
     else
       "#{@namespace}#{@namespace_separator}#{key}"
     end
+  end
+
+  ##
+  # Calculate length of the key, including the namespace and namespace-separator.
+
+  def key_length(key)
+    key.length + (namespace.nil? ? 0 : ( namespace.length + (@namespace_separator.nil? ? 0 : @namespace_separator.length) ) )
   end
 
   ##

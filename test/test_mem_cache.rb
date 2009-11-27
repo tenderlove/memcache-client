@@ -725,14 +725,16 @@ class TestMemCache < Test::Unit::TestCase
     hash = Digest::SHA1.hexdigest(key)
     @cache.namespace = nil
     assert_equal key, @cache.make_cache_key(key)
+  end
 
+  def test_make_cache_key_with_autofix
     @cache.autofix_keys = true
 
     @cache.namespace = "my_namespace"
     assert_equal 'my_namespace:key', @cache.make_cache_key('key')
     @cache.namespace = nil
     assert_equal 'key', @cache.make_cache_key('key')
-    
+
     key = "keys with more than two hundred and fifty characters can cause problems, because they get truncated and start colliding with each other. It's not a common occurrence, but when it happens is very hard to debug. the autofix option takes care of that for you"
     hash = Digest::SHA1.hexdigest(key)
     @cache.namespace = "my_namespace"
@@ -746,8 +748,14 @@ class TestMemCache < Test::Unit::TestCase
     assert_equal "my_namespace:#{hash}-autofixed", @cache.make_cache_key(key)
     @cache.namespace = nil
     assert_equal "#{hash}-autofixed", @cache.make_cache_key(key)
+
+    # namespace + separator + key > 250
+    key = 'k' * 240
+    hash = Digest::SHA1.hexdigest(key)
+    @cache.namespace = 'n' * 10
+    assert_equal "#{@cache.namespace}:#{hash}-autofixed", @cache.make_cache_key(key)
   end
-  
+
   def test_servers
     server = FakeServer.new
     @cache.servers = []
