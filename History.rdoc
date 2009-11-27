@@ -1,6 +1,6 @@
 = 1.7.7 (2009-11-24)
 
-* Fix invalid delete request in memcached 1.4.x.  The expiry parameter to MemCache#delete is 
+* Fix invalid delete request in memcached 1.4.x.  The expiry parameter to MemCache#delete is
   now ignored as memcached 1.4.x has dropped support for this feature.
 
 = 1.7.6 (2009-11-03)
@@ -39,15 +39,15 @@
 
 = 1.7.1 (2009-03-28)
 
-* Performance optimizations: 
-  * Rely on higher performance operating system socket timeouts for low-level socket 
+* Performance optimizations:
+  * Rely on higher performance operating system socket timeouts for low-level socket
     read/writes where possible, instead of the (slower) SystemTimer or (slowest,
     unreliable) Timeout libraries.
-  * the native binary search is back!  The recent performance tuning made the binary search 
-    a bottleneck again so it had to return.  It uses RubyInline to compile the native extension and 
+  * the native binary search is back!  The recent performance tuning made the binary search
+    a bottleneck again so it had to return.  It uses RubyInline to compile the native extension and
     silently falls back to pure Ruby if anything fails.  Make sure you run:
     `gem install RubyInline` if you want ultimate performance.
-  * the changes make memcache-client 100% faster than 1.7.0 in my performance test on Ruby 1.8.6: 
+  * the changes make memcache-client 100% faster than 1.7.0 in my performance test on Ruby 1.8.6:
     15 sec -> 8 sec.
 * Fix several logging issues.
 
@@ -58,7 +58,7 @@
   - append
   - prepend
   - replace
-  
+
   Append and prepend only work with raw data since it makes no sense to concatenate two Marshalled
   values together.  The cas functionality should be considered a prototype.  Since I don't have an
   application which uses +cas+, I'm not sure what semantic sugar the API should provide.  Should it
@@ -119,17 +119,17 @@ and work on JRuby and Ruby 1.8.5 when the native code fails to compile.
 
 = 1.6.1 (2009-01-28)
 
-* Add option to disable socket timeout support.  Socket timeout has a significant performance 
-  penalty (approx 3x slower than without in Ruby 1.8.6).  You can turn off the timeouts if you 
+* Add option to disable socket timeout support.  Socket timeout has a significant performance
+  penalty (approx 3x slower than without in Ruby 1.8.6).  You can turn off the timeouts if you
   need absolute performance, but by default timeouts are enabled. The performance
   penalty is much lower in Ruby 1.8.7, 1.9 and JRuby.  (mperham)
 
-* Add option to disable server failover.  Failover can lead to "split-brain" caches that 
+* Add option to disable server failover.  Failover can lead to "split-brain" caches that
   return stale data. (mperham)
 
 * Implement continuum binary search in native code for performance reasons.  Pure ruby
   is available for platforms like JRuby or Rubinius which can't use C extensions. (mperham)
-  
+
 * Fix #add with raw=true (iamaleksey)
 
 = 1.6.0

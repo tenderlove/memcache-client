@@ -1,12 +1,12 @@
 ##
 # A utility wrapper around the MemCache client to simplify cache access.  All
 # methods silently ignore MemCache errors.
-# 
+#
 # This API is deprecated, please use the Rails.cache API or your own wrapper API
 # around MemCache.
 
 module Cache
-  
+
   ##
   # Try to return a logger object that does not rely
   # on ActiveRecord for logging.

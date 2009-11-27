@@ -39,7 +39,7 @@ gem installed.
 
 == Questions?
 
-memcache-client is maintained by Mike Perham and was originally written by Bob Cottrell, 
+memcache-client is maintained by Mike Perham and was originally written by Bob Cottrell,
 Eric Hodel and the seattle.rb crew.
 
 Email::        mailto:mperham@gmail.com

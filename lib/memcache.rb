@@ -82,13 +82,13 @@ class MemCache
   # The hash is only used on keys longer than 250 characters, or containing spaces,
   # to avoid impacting performance unnecesarily.
   #
-  # In theory, your code should generate correct keys when calling memcache, 
+  # In theory, your code should generate correct keys when calling memcache,
   # so it's your responsibility and you should try to fix this problem at its source.
   #
   # But if that's not possible, enable this option and memcache-client will give you a hand.
-  
+
   attr_reader :autofix_keys
-  
+
   ##
   # The servers this client talks to.  Play at your own peril.
 
@@ -136,7 +136,7 @@ class MemCache
   #                   set/add/delete/incr/decr significantly.
   #   [:check_size]   Raises a MemCacheError if the value to be set is greater than 1 MB, which
   #                   is the maximum key size for the standard memcached server.  Defaults to true.
-  #   [:autofix_keys] If a key is longer than 250 characters or contains spaces, 
+  #   [:autofix_keys] If a key is longer than 250 characters or contains spaces,
   #                   use an SHA1 hash instead, to prevent collisions on truncated keys.
   # Other options are ignored.
 
@@ -260,7 +260,7 @@ class MemCache
   end
 
   ##
-  # Performs a +get+ with the given +key+.  If 
+  # Performs a +get+ with the given +key+.  If
   # the value does not exist and a block was given,
   # the block will be called and the result saved via +add+.
   #
@@ -451,7 +451,7 @@ class MemCache
       end
     end
   end
-  
+
   ##
   # Add +key+ to the cache with value +value+ that expires in +expiry+
   # seconds, but only if +key+ already exists in the cache.
@@ -712,7 +712,7 @@ class MemCache
       break unless failover
       hkey = hash_for "#{try}#{key}"
     end
-    
+
     raise MemCacheError, "No servers available"
   end
 

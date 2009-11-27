@@ -19,7 +19,7 @@ class MemCache
 
   attr_writer :namespace
   attr_writer :autofix_keys
-  
+
 end
 
 class FakeSocket
@@ -54,11 +54,11 @@ class Test::Unit::TestCase
       assert true
     end
   end
-  
+
   def memcached_running?
     TCPSocket.new('localhost', 11211) rescue false
   end
-  
+
   def xprofile(name, &block)
     a = Time.now
     block.call
@@ -76,7 +76,7 @@ class Test::Unit::TestCase
     end
     time
   end
-  
+
 end
 
 class FakeServer
@@ -168,7 +168,7 @@ class TestMemCache < Test::Unit::TestCase
       assert same_count > 700
     end
   end
-  
+
   def test_get_multi_with_server_failure
     @cache = MemCache.new 'localhost:1', :namespace => 'my_namespace', :logger => nil #Logger.new(STDOUT)
     s1 = FakeServer.new
@@ -211,11 +211,11 @@ class TestMemCache < Test::Unit::TestCase
     assert s1.alive?
     assert !s2.alive?
   end
-  
+
   def test_cache_get_without_failover
     s1 = FakeServer.new
     s2 = FakeServer.new
-    
+
     s1.socket.data.write "VALUE foo 0 14\r\n\004\b\"\0170123456789\r\n"
     s1.socket.data.rewind
     s2.socket.data.write "bogus response\r\nbogus response\r\n"
@@ -336,7 +336,7 @@ class TestMemCache < Test::Unit::TestCase
   def test_multithread_error
     server = FakeServer.new
     server.multithread = false
-    
+
     @cache = MemCache.new(['localhost:1'], :multithread => false)
 
     server.socket.data.write "bogus response\r\nbogus response\r\n"
@@ -489,7 +489,7 @@ class TestMemCache < Test::Unit::TestCase
     value = @cache.fetch('key', 1)
     assert_equal nil, value
   end
-  
+
   def test_fetch_miss
     server = FakeServer.new
     server.socket.data.write "END\r\n"
@@ -741,7 +741,7 @@ class TestMemCache < Test::Unit::TestCase
     assert_equal "my_namespace:#{hash}-autofixed", @cache.make_cache_key(key)
     @cache.namespace = nil
     assert_equal "#{hash}-autofixed", @cache.make_cache_key(key)
-    
+
     key = "a short key with spaces"
     hash = Digest::SHA1.hexdigest(key)
     @cache.namespace = "my_namespace"
@@ -872,7 +872,7 @@ class TestMemCache < Test::Unit::TestCase
     @cache.servers << server
 
     @cache.prepend 'key', 'value'
-    
+
     dumped = Marshal.dump('value')
 
     expected = "prepend my_namespace:key 0 0 5\r\nvalue\r\n"
@@ -887,7 +887,7 @@ class TestMemCache < Test::Unit::TestCase
     @cache.servers << server
 
     @cache.append 'key', 'value'
-    
+
     expected = "append my_namespace:key 0 0 5\r\nvalue\r\n"
     assert_equal expected, server.socket.written.string
   end
@@ -900,7 +900,7 @@ class TestMemCache < Test::Unit::TestCase
     @cache.servers << server
 
     @cache.replace 'key', 'value', 150
-    
+
     dumped = Marshal.dump('value')
 
     expected = "replace my_namespace:key 0 150 #{dumped.length}\r\n#{dumped}\r\n"
@@ -915,7 +915,7 @@ class TestMemCache < Test::Unit::TestCase
     @cache.servers << server
 
     @cache.add 'key', 'value'
-    
+
     dumped = Marshal.dump('value')
 
     expected = "add my_namespace:key 0 0 #{dumped.length}\r\n#{dumped}\r\n"
@@ -990,9 +990,9 @@ class TestMemCache < Test::Unit::TestCase
     server = FakeServer.new
     @cache.servers = []
     @cache.servers << server
-    
+
     @cache.delete 'key'
-    
+
     expected = "delete my_namespace:key\r\n"
     assert_equal expected, server.socket.written.string
   end
@@ -1001,9 +1001,9 @@ class TestMemCache < Test::Unit::TestCase
     server = FakeServer.new
     @cache.servers = []
     @cache.servers << server
-    
+
     @cache.delete 'key', 300
-    
+
     expected = "delete my_namespace:key\r\n"
     assert_equal expected, server.socket.written.string
   end
@@ -1050,7 +1050,7 @@ class TestMemCache < Test::Unit::TestCase
 
     assert_match(/flush_all\r\n/, socket.written.string)
   end
-  
+
   def test_flush_all_for_real
     requirement(memcached_running?, 'A real memcached server must be running for testing flush_all') do
       cache = MemCache.new "localhost:11211", :namespace => "test_flush_all"

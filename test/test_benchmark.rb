@@ -17,7 +17,7 @@ class TestBenchmark < Test::Unit::TestCase
     # which is a constant penalty that both clients have to pay
     @value = []
     @marshalled = Marshal.dump(@value)
-    
+
     @opts = [
       ['127.0.0.1:11211', 'localhost:11211'],
       {
@@ -31,16 +31,16 @@ class TestBenchmark < Test::Unit::TestCase
     @key3 = "Long"*40
     @key4 = "Medium"*8
     # 5 and 6 are only used for multiget miss test
-    @key5 = "Medium2"*8 
-    @key6 = "Long3"*40 
+    @key5 = "Medium2"*8
+    @key6 = "Long3"*40
   end
 
   def test_benchmark
     Benchmark.bm(31) do |x|
-    
+
       n = 2500
 #      n = 1000
-    
+
       @m = MemCache.new(*@opts)
       x.report("set:plain:memcache-client") do
         n.times do
@@ -52,7 +52,7 @@ class TestBenchmark < Test::Unit::TestCase
           @m.set @key3, @marshalled, 0, true
         end
       end
-    
+
       @m = MemCache.new(*@opts)
       x.report("set:ruby:memcache-client") do
         n.times do
@@ -64,7 +64,7 @@ class TestBenchmark < Test::Unit::TestCase
           @m.set @key3, @value
         end
       end
-    
+
       @m = MemCache.new(*@opts)
       x.report("get:plain:memcache-client") do
         n.times do
@@ -76,7 +76,7 @@ class TestBenchmark < Test::Unit::TestCase
           @m.get @key3, true
         end
       end
-    
+
       @m = MemCache.new(*@opts)
       x.report("get:ruby:memcache-client") do
         n.times do
@@ -96,7 +96,7 @@ class TestBenchmark < Test::Unit::TestCase
           @m.get_multi @key1, @key2, @key3, @key4, @key5, @key6
         end
       end
-    
+
       @m = MemCache.new(*@opts)
       x.report("missing:ruby:memcache-client") do
         n.times do
@@ -108,7 +108,7 @@ class TestBenchmark < Test::Unit::TestCase
           begin @m.get @key3; rescue; end
         end
       end
-          
+
       @m = MemCache.new(*@opts)
       x.report("mixed:ruby:memcache-client") do
         n.times do
