@@ -3,6 +3,7 @@ $TESTING = defined?($TESTING) && $TESTING
 require 'socket'
 require 'thread'
 require 'zlib'
+require 'yaml'
 require 'digest/sha1'
 require 'net/protocol'
 
