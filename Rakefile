@@ -14,7 +14,6 @@ begin
     s.has_rdoc = true
     s.files = FileList["[A-Z]*", "{lib,test}/**/*", 'performance.txt']
     s.test_files = FileList["test/test_*.rb"]
-    s.rubyforge_project = 'seattlerb'
   end
 
 rescue LoadError
