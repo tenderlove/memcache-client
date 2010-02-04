@@ -15,7 +15,7 @@ begin
     s.files = FileList["[A-Z]*", "{lib,test}/**/*", 'performance.txt']
     s.test_files = FileList["test/test_*.rb"]
   end
-
+  Jeweler::GemcutterTasks.new
 rescue LoadError
   puts "Jeweler not available. Install it for jeweler-related tasks with: sudo gem install jeweler"
 end
