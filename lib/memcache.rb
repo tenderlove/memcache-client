@@ -406,7 +406,7 @@ class MemCache
     (value, token) = gets(key, raw)
     return nil unless value
     updated = yield value
-    value = Marshal.dump updated unless raw
+    value = raw ? updated : Marshal.dump(updated)
 
     with_server(key) do |server, cache_key|
       logger.debug { "cas #{key} to #{server.inspect}: #{value.to_s.size}" } if logger

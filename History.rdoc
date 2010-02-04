@@ -1,7 +1,8 @@
-= 1.7.8 (HEAD)
+= 1.7.8 (2010-02-03)
 
 * Fix issue where autofix_keys logic did not account for namespace length. (menno)
 * Fix issue when using memcache-client without rubygems. (anvar)
+* Fix issue when using the cas method with raw=true (Takahiro Kikumoto)
 
 = 1.7.7 (2009-11-24)
 
