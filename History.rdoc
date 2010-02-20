@@ -1,3 +1,7 @@
+= HEAD
+
+ * Add support for raw values in get_multi
+
 = 1.7.8 (2010-02-03)
 
 * Fix issue where autofix_keys logic did not account for namespace length. (menno)

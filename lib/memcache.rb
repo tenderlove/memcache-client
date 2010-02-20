@@ -295,10 +295,15 @@ class MemCache
   #   cache["b"] = 2
   #   cache.get_multi "a", "b" # => { "a" => 1, "b" => 2 }
   #
-  # Note that get_multi assumes the values are marshalled.
+  # Note that get_multi assumes the values are marshalled.  You can pass
+  # in :raw => true to bypass value marshalling.
+  #
+  #   cache.get_multi('a', 'b', ..., :raw => true)
 
   def get_multi(*keys)
     raise MemCacheError, 'No active servers' unless active?
+
+    opts = keys.last.is_a?(Hash) ? keys.pop : {}
 
     keys.flatten!
     key_count = keys.length
@@ -313,13 +318,13 @@ class MemCache
     end
 
     results = {}
-
+    raw = opts[:raw] || false
     server_keys.each do |server, keys_for_server|
       keys_for_server_str = keys_for_server.join ' '
       begin
         values = cache_get_multi server, keys_for_server_str
         values.each do |key, value|
-          results[cache_keys[key]] = Marshal.load value
+          results[cache_keys[key]] = raw ? value : Marshal.load(value)
         end
       rescue IndexError => e
         # Ignore this server and try the others

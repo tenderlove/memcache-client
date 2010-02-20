@@ -598,6 +598,28 @@ class TestMemCache < Test::Unit::TestCase
     assert_equal expected.sort, values.sort
   end
 
+  def test_get_multi_raw
+    server = FakeServer.new
+    server.socket.data.write "VALUE my_namespace:key 0 10\r\n"
+    server.socket.data.write "0123456789\r\n"
+    server.socket.data.write "VALUE my_namespace:keyb 0 10\r\n"
+    server.socket.data.write "9876543210\r\n"
+    server.socket.data.write "END\r\n"
+    server.socket.data.rewind
+
+    @cache.servers = []
+    @cache.servers << server
+
+    values = @cache.get_multi 'key', 'keyb', :raw => true
+
+    assert_equal "get my_namespace:key my_namespace:keyb\r\n",
+                 server.socket.written.string
+
+    expected = { 'key' => '0123456789', 'keyb' => '9876543210' }
+
+    assert_equal expected.sort, values.sort
+  end
+
   def test_get_raw
     server = FakeServer.new
     server.socket.data.write "VALUE my_namespace:key 0 10\r\n"
