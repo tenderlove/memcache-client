@@ -42,16 +42,16 @@ memcache-client 1.8.0 added support for native EventMachine connections using
 Ruby 1.9.  If you are using an EventMachine-based application (e.g. thin), you can
 activate the EventMachine support like so:
 
-require 'memcache'
-require 'memcache/event_machine'
+  require 'memcache'
+  require 'memcache/event_machine'
 
-EM.run do
-  Fiber.new do
-    m = MemCache.new('localhost:11211')
-    m.set 'abc', 'xyz'
-    m.get 'abc'
-  end.resume
-end
+  EM.run do
+    Fiber.new do
+      m = MemCache.new('localhost:11211')
+      m.set 'abc', 'xyz'
+      m.get 'abc'
+    end.resume
+  end
 
 == Questions?
 
