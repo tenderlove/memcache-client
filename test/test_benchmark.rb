@@ -1,13 +1,8 @@
-HERE = File.dirname(__FILE__)
-$LOAD_PATH.unshift "#{HERE}/../lib"
-#$LOAD_PATH << "/Library/Ruby/Gems/1.8/gems/activesupport-2.2.2/lib/active_support/vendor/memcache-client-1.5.1"
-
 require 'benchmark'
-require 'rubygems'
 require 'test/unit'
 
 $TESTING = true
-require 'memcache' if not defined?(MemCache)
+require 'memcache'
 
 class TestBenchmark < Test::Unit::TestCase
 
@@ -34,12 +29,24 @@ class TestBenchmark < Test::Unit::TestCase
     @key5 = "Medium2"*8
     @key6 = "Long3"*40
   end
+  
+  def test_em
+    return if RUBY_VERSION < '1.9'
+    require 'eventmachine'
+    require 'memcache/event_machine'
+    puts "with EventMachine"
+    EM.run do
+      Fiber.new do
+        test_benchmark
+        EM.stop
+      end.resume
+    end
+  end
 
   def test_benchmark
     Benchmark.bm(31) do |x|
 
       n = 2500
-#      n = 1000
 
       @m = MemCache.new(*@opts)
       x.report("set:plain:memcache-client") do

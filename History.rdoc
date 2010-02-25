@@ -1,5 +1,6 @@
 = HEAD
 
+ * Add support for EventMachine-based connections.
  * Add support for raw values in get_multi
 
 = 1.7.8 (2010-02-03)

@@ -29,6 +29,7 @@ end
 
 Rake::TestTask.new do |t|
   t.warning = true
+  t.libs = ['lib', 'test']
 end
 
 task :default => :test

@@ -2,6 +2,9 @@
 require 'logger'
 require 'stringio'
 require 'test/unit'
+$TESTING = true
+require 'memcache'
+
 require 'rubygems'
 begin
   gem 'flexmock'
@@ -11,9 +14,6 @@ rescue LoadError => e
 end
 
 Thread.abort_on_exception = true
-$TESTING = true
-
-require File.dirname(__FILE__) + '/../lib/memcache' if not defined?(MemCache)
 
 class MemCache
 

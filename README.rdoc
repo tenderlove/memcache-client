@@ -36,6 +36,22 @@ Rails 2.1+ includes memcache-client 1.5.0 out of the box.  See ActiveSupport::Ca
 and the Rails.cache method for more details.  Rails 2.3+ will use the latest memcache-client
 gem installed.
 
+== Using memcache-client with EventMachine
+
+memcache-client 1.8.0 added support for native EventMachine connections using
+Ruby 1.9.  If you are using an EventMachine-based application (e.g. thin), you can
+activate the EventMachine support like so:
+
+require 'memcache'
+require 'memcache/event_machine'
+
+EM.run do
+  Fiber.new do
+    m = MemCache.new('localhost:11211')
+    m.set 'abc', 'xyz'
+    m.get 'abc'
+  end.resume
+end
 
 == Questions?
 
