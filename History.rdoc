@@ -2,6 +2,7 @@
 
  * Add support for EventMachine-based connections.
  * Add support for raw values in get_multi
+ * Add memcached_top binary for gathering server statistics
 
 = 1.7.8 (2010-02-03)
 
