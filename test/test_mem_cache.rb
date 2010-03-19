@@ -1,11 +1,11 @@
 # encoding: utf-8
+require 'rubygems'
 require 'logger'
 require 'stringio'
 require 'test/unit'
 $TESTING = true
 require 'memcache'
 
-require 'rubygems'
 begin
   gem 'flexmock'
   require 'flexmock/test_unit'

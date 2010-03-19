@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'benchmark'
 require 'test/unit'
 
