@@ -4,9 +4,9 @@ $TESTING = defined?($TESTING) && $TESTING
 require 'socket'
 require 'thread'
 require 'zlib'
-require 'yaml'
 require 'digest/sha1'
 require 'net/protocol'
+require 'memcache/version'
 
 begin
   # Try to use the SystemTimer gem instead of Ruby's timeout library
@@ -33,14 +33,6 @@ end
 #
 
 class MemCache
-
-  ##
-  # The version of MemCache you are using.
-
-  VERSION = begin
-    config = YAML.load(File.read(File.dirname(__FILE__) + '/../VERSION.yml'))
-    "#{config[:major]}.#{config[:minor]}.#{config[:patch]}"
-  end
 
   ##
   # Default options for the cache object.

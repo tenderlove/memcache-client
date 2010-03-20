@@ -3,10 +3,12 @@ require 'rubygems'
 require 'rake/rdoctask'
 require 'rake/testtask'
 
+require File.dirname(__FILE__) + "/lib/memcache/version.rb"
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |s|
     s.name = "memcache-client"
+    s.version = MemCache::VERSION
     s.summary = s.description = "A Ruby library for accessing memcached."
     s.email = "mperham@gmail.com"
     s.homepage = "http://github.com/mperham/memcache-client"

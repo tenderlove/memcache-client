@@ -1,6 +1,7 @@
-= HEAD
+= 1.8.1 (2010-03-20)
 
  * Only require SystemTimer if the Ruby VM looks like MRI.
+ * Remove VERSION.yml usage as we should avoid using files outside of lib at runtime. (josh)
 
 = 1.8.0 (2010-03-05)
 
