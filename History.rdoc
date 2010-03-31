@@ -1,3 +1,7 @@
+= HEAD
+
+ * Fix concurrency issues with eventmachine support.
+
 = 1.8.1 (2010-03-20)
 
  * Only require SystemTimer if the Ruby VM looks like MRI.

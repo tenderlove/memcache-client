@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{memcache-client}
-  s.version = "1.8.0"
+  s.version = "1.8.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Eric Hodel", "Robert Cottrell", "Mike Perham"]
-  s.date = %q{2010-03-05}
+  s.date = %q{2010-03-30}
   s.default_executable = %q{memcached_top}
   s.description = %q{A Ruby library for accessing memcached.}
   s.email = %q{mperham@gmail.com}
@@ -24,10 +24,10 @@ Gem::Specification.new do |s|
      "LICENSE.txt",
      "README.rdoc",
      "Rakefile",
-     "VERSION.yml",
      "lib/continuum_native.rb",
      "lib/memcache.rb",
      "lib/memcache/event_machine.rb",
+     "lib/memcache/version.rb",
      "lib/memcache_util.rb",
      "performance.txt",
      "test/test_benchmark.rb",

@@ -1101,8 +1101,7 @@ class MemCache
     # Mark the server as dead and close its socket.
 
     def mark_dead(error)
-      @sock.close if @sock && !@sock.closed?
-      @sock   = nil
+      close
       @retry  = Time.now + RETRY_DELAY
 
       reason = "#{error.class.name}: #{error.message}"

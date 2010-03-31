@@ -4,40 +4,61 @@ raise "memcache/event_machine requires Ruby 1.9" if RUBY_VERSION < '1.9'
 
 require 'fiber'
 
-class MemCache::Server
+class MemCache
   
-  alias :blocking_socket :socket
-    
-  def socket
-    # Support plain old TCP socket connections if the user
-    # has not setup EM.  Much easier to deal with in irb, 
-    # script/console, etc.
-    return blocking_socket if !EM.reactor_running?
-
-    return @sock if @sock and not @sock.closed?
-
-    @sock = nil
-
-    # If the host was dead, don't retry for a while.
-    return if @retry and @retry > Time.now
-    
-    fiber = Fiber.current
-    @sock = EM::SocketConnection.connect(@host, @port, @timeout)
-    yielding = true
-    @sock.callback do
-      @status = 'CONNECTED'
-      @retry  = nil
-      yielding = false
-      fiber.resume if Fiber.current != fiber
-    end
-    @sock.errback do
-      yielding = false
-      fiber.resume if Fiber.current != fiber
-    end
-    Fiber.yield if yielding
-    @sock
+  def check_multithread_status!
   end
-  
+
+  class Server
+    alias :blocking_socket :socket
+
+    def fiber_key
+      @fiber_key ||= "memcached-#{@host}-#{@port}"
+    end
+    
+    def socket
+      # Support plain old TCP socket connections if the user
+      # has not setup EM.  Much easier to deal with in irb, 
+      # script/console, etc.
+      return blocking_socket if !EM.reactor_running?
+
+      sock = Thread.current[fiber_key]
+      return sock if sock and not sock.closed?
+
+      Thread.current[fiber_key] = nil
+
+      # If the host was dead, don't retry for a while.
+      return if @retry and @retry > Time.now
+    
+      Thread.current[fiber_key] ||= begin
+        sock = EM::SocketConnection.connect(@host, @port, @timeout)
+        yielding = true
+        fiber = Fiber.current
+        sock.callback do
+          @status = 'CONNECTED'
+          @retry  = nil
+          yielding = false
+          fiber.resume if Fiber.current != fiber
+        end
+        sock.errback do
+          sock = nil
+          yielding = false
+          fiber.resume if Fiber.current != fiber
+        end
+        Fiber.yield if yielding
+        sock
+      end
+    end
+
+    def close
+      sock = Thread.current[fiber_key]
+      sock.close if sock && !sock.closed?
+      Thread.current[fiber_key] = nil
+      @retry  = nil
+      @status = "NOT CONNECTED"
+    end
+
+  end
 end
 
 module EM
@@ -127,7 +148,11 @@ module EM
     end
 
     def unbind
-      @connected = false
+      if @connected
+        @connected = false
+      else
+        fail
+      end
     end
     
     private
