@@ -2,10 +2,16 @@
 
 raise "memcache/event_machine requires Ruby 1.9" if RUBY_VERSION < '1.9'
 
+require 'memcache'
+require 'eventmachine'
 require 'fiber'
 
 class MemCache
   
+  # Since we are working in a single Thread, multiple Fiber environment,
+  # disable the multithread Mutex as it will not work.
+  DEFAULT_OPTIONS[:multithread] = false
+
   def check_multithread_status!
   end
 
