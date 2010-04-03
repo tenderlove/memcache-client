@@ -1201,6 +1201,7 @@ class TestMemCache < Test::Unit::TestCase
       # Use a null logger to verify logging doesn't blow up at runtime
       cache = MemCache.new(['localhost:11211', '127.0.0.1:11211'], :logger => Logger.new('/dev/null'))
       cache.flush_all
+      assert_equal true, cache.multithread
       workers = []
 
       cache.set('f', 'zzz')

@@ -110,7 +110,7 @@ class MemCache
   # Please note this feature only works in memcached 1.2.5 and later.  Earlier
   # versions will reply with "ERROR".
   attr_reader :no_reply
-
+  
   ##
   # Accepts a list of +servers+ and a list of +opts+.  +servers+ may be
   # omitted.  See +servers=+ for acceptable server list arguments.
@@ -154,10 +154,11 @@ class MemCache
       raise ArgumentError, "wrong number of arguments (#{args.length} for 2)"
     end
 
+    @evented = defined?(EM) && EM.reactor_running?
     opts = DEFAULT_OPTIONS.merge opts
     @namespace    = opts[:namespace]
     @readonly     = opts[:readonly]
-    @multithread  = opts[:multithread]
+    @multithread  = opts[:multithread] && !@evented
     @autofix_keys = opts[:autofix_keys]
     @timeout      = opts[:timeout]
     @failover     = opts[:failover]
@@ -170,6 +171,7 @@ class MemCache
     logger.info { "memcache-client #{VERSION} #{Array(servers).inspect}" } if logger
 
     Thread.current[:memcache_client] = self.object_id if !@multithread
+    
 
     self.servers = servers
   end
@@ -946,6 +948,7 @@ class MemCache
 
   def check_multithread_status!
     return if @multithread
+    return if @evented
 
     if Thread.current[:memcache_client] != self.object_id
       raise MemCacheError, <<-EOM
@@ -1011,6 +1014,8 @@ class MemCache
       @status = 'NOT CONNECTED'
       @timeout = memcache.timeout
       @logger = memcache.logger
+      
+      self.extend(MemCache::EventedServer) if defined?(EM) and EM.reactor_running?
     end
 
     ##

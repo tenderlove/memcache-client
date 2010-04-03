@@ -10,24 +10,15 @@ class MemCache
   
   # Since we are working in a single Thread, multiple Fiber environment,
   # disable the multithread Mutex as it will not work.
-  DEFAULT_OPTIONS[:multithread] = false
+#  DEFAULT_OPTIONS[:multithread] = false
 
-  def check_multithread_status!
-  end
-
-  class Server
-    alias :blocking_socket :socket
+  module EventedServer
 
     def fiber_key
       @fiber_key ||= "memcached-#{@host}-#{@port}"
     end
     
     def socket
-      # Support plain old TCP socket connections if the user
-      # has not setup EM.  Much easier to deal with in irb, 
-      # script/console, etc.
-      return blocking_socket if !EM.reactor_running?
-
       sock = Thread.current[fiber_key]
       return sock if sock and not sock.closed?
 
@@ -58,8 +49,10 @@ class MemCache
 
     def close
       sock = Thread.current[fiber_key]
-      sock.close if sock && !sock.closed?
-      Thread.current[fiber_key] = nil
+      if sock
+        sock.close if !sock.closed?
+        Thread.current[fiber_key] = nil
+      end
       @retry  = nil
       @status = "NOT CONNECTED"
     end
