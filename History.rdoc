@@ -1,4 +1,4 @@
-= 1.8.3 (HEAD)
+= 1.8.3 (2010-04-26)
 
  * Don't allow blank keys. (Bill Horsman)
 
