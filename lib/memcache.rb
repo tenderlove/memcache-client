@@ -1015,8 +1015,10 @@ class MemCache
       @status = 'NOT CONNECTED'
       @timeout = memcache.timeout
       @logger = memcache.logger
-      
-      self.extend(MemCache::EventedServer) if defined?(EM) and EM.reactor_running?
+
+      if defined?(EM) and EM.reactor_running? and defined?(MemCache::EventedServer)
+        self.extend(MemCache::EventedServer)
+      end
     end
 
     ##
